@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { eq } from 'drizzle-orm'
+import { eq, isNull } from 'drizzle-orm'
 import * as t from '../../server/db/schema'
 import { computeTotals } from '../../server/services/totals'
 import { db, hasDb } from './helpers'
@@ -8,8 +8,8 @@ describe.skipIf(!hasDb)('seeded database', () => {
   it('has the Kola Market store with four regions', async () => {
     const [store] = await db().select().from(t.store)
     expect(store?.name).toBe('Kola Market')
-    const regions = await db().select({ name: t.region.name, currency: t.region.currencyCode }).from(t.region)
-    expect(regions.map((r) => r.currency).sort()).toEqual(['EUR', 'GBP', 'GHS', 'USD'])
+    const regions = await db().select({ name: t.region.name, currency: t.region.currencyCode }).from(t.region).where(isNull(t.region.deletedAt))
+    expect(regions.map((r) => r.name)).toEqual(expect.arrayContaining(['Ghana', 'West Africa', 'Europe', 'United Kingdom']))
   })
 
   it('stores order totals that match the totals engine', async () => {

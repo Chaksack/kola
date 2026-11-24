@@ -116,3 +116,18 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
   unused.
 - **Service zone countries come from region countries**, so a location only ships where a region sells.
 - **Shipping option prices are replaced wholesale on save**, like product prices.
+
+## M6: Regions, sales channels and taxes
+
+- **A country belongs to at most one region** (the `region_country.iso2` primary key). Saving a region
+  that claims another region's country returns 409; deleting a region releases its countries.
+- **The country list is a compact array of ISO codes**, with names from `Intl.DisplayNames`, so there's
+  no country table to maintain.
+- **One default tax rate per region.** Product-type rates are overrides and never the default. Rates
+  are basis points.
+- **Store defaults are protected:** the default region, location and sales channel can't be deleted (and
+  the default channel can't be disabled) until another default is chosen.
+- **Payment provider availability** is shown per provider (`configured` = credentials present), but
+  regions may enable a provider before its keys are set; checkout hides unconfigured providers.
+- **`api()` helper (app/utils/api.ts)** wraps `$fetch` for dynamic URLs to avoid Nitro typed-route
+  inference hitting TypeScript's depth limit.
