@@ -269,3 +269,31 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
 - **Reviews** (Extensions) are held for moderation. Store submissions are rate-limited to 5 per hour
   per IP. **Analytics** reports net sales (total − refunds) in the default currency, as a single-series
   bar chart with a data-table view.
+
+## M12: Hardening
+
+- **Accessibility is tested, not eyeballed.** `tests/e2e/a11y.spec.ts` runs axe (WCAG 2.1 A/AA) on 8
+  storefront and 10 admin screens and fails on any violation. Fixes it drove:
+  - `--orange-text`/`--warn-text` darkened from `#c94000` to `#b83a00`, and `--ok-text` from `#2f7a4a`
+    to `#2a6e43`, so they clear 4.5:1 on every surface (paper, putty, hover rows, active nav), not just
+    the canvas.
+  - The 60% ink "second line" stays for large headings (3:1 is enough there); lead-size and body copy
+    use `--ink-3`.
+  - Links inside running text are underlined.
+  - Tab counts use `--ink-2`.
+- **375px:** storefront and admin have no horizontal overflow at 375px (checked in Chrome). KPI values
+  scale down instead of clipping.
+- **Performance is measured with Playwright, not Lighthouse** (Lighthouse isn't installed in this
+  environment). `tests/e2e/perf.spec.ts` measures LCP and CLS on the production build under
+  Lighthouse-style mobile throttling (4x CPU, ~1.6 Mbps, 150ms RTT), with budgets of LCP < 2.5s and
+  CLS < 0.1. Measured: home LCP ≈ 0.86s / CLS 0; product LCP ≈ 0.74s / CLS 0; ≈ 344KB of JS
+  transferred. The home page's CLS was 0.21, caused by the Inter font swap on the 72px hero. A
+  metric-matched `Inter Fallback` face (Arial with Inter's ascent/descent/size-adjust) brought it to 0.
+  Run Lighthouse against the deployed site to confirm the ≥ 90 score.
+- **E2E admin tests share one session.** The global setup signs in once via the API and saves the
+  session, because logging in per test trips the login rate limiter. The setup also clears
+  `rate_limit`.
+- **Crons are declared twice**: in `vercel.json` (Git deploys) and in `nitro.vercel.config.crons`, so
+  they land in `.vercel/output/config.json` for prebuilt deploys.
+- **CI** runs `check` (typecheck, lint, migrate, seed, unit+API tests, build) and then `e2e`
+  (Playwright with bundled Chromium against a freshly seeded Postgres service).

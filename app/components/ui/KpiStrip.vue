@@ -32,6 +32,7 @@ defineProps<{ items: Kpi[] }>()
   overflow: hidden;
 }
 .ui-kpi {
+  min-width: 0;
   background: var(--putty);
   padding: 14px 16px;
   display: flex;
@@ -42,7 +43,9 @@ defineProps<{ items: Kpi[] }>()
   margin: 0;
 }
 .ui-kpi__value {
-  font-size: 24px;
+  /* Scales down in narrow cells so long currency values never clip */
+  font-size: clamp(18px, 2.2vw + 10px, 24px);
+  overflow-wrap: anywhere;
   letter-spacing: -0.02em;
   line-height: 1.2;
 }

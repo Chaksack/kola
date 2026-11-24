@@ -39,3 +39,40 @@ jobs:
       - run: pnpm db:seed
       - run: pnpm test
       - run: pnpm build
+
+  e2e:
+    needs: check
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: kola
+          POSTGRES_PASSWORD: kola
+          POSTGRES_DB: kola_e2e
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U kola" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://kola:kola@localhost:5432/kola_e2e
+      NUXT_APP_SECRET: ci-only-secret-that-is-at-least-32-characters-long
+      CRON_SECRET: ci-cron-secret
+      ADMIN_SEED_EMAIL: owner@kola.test
+      ADMIN_SEED_PASSWORD: ci-owner-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm db:migrate
+      - run: pnpm db:seed
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: test-results/

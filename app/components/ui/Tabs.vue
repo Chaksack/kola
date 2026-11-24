@@ -53,7 +53,8 @@ const model = defineModel<string>({ required: true })
   color: var(--ink);
 }
 .ui-tab__count {
-  color: var(--ink-3);
+  /* ink-2: ink-3 falls under 4.5:1 on the active (control) pill */
+  color: var(--ink-2);
   font-size: var(--fs-meta);
 }
 @media (max-width: 768px) {
