@@ -27,8 +27,8 @@ function tabFilter(tab: OrderTab): SQL | undefined {
     case 'returns':
       return or(
         inArray(t.order.paymentStatus, ['refunded', 'partially_refunded']),
-        sql`exists (select 1 from ${t.orderReturn} r where r.order_id = ${t.order.id} and r.status <> 'canceled')`,
-        sql`exists (select 1 from ${t.exchange} x where x.order_id = ${t.order.id} and x.status <> 'canceled')`,
+        sql`exists (select 1 from ${t.orderReturn} r where r.order_id = "order"."id" and r.status <> 'canceled')`,
+        sql`exists (select 1 from ${t.exchange} x where x.order_id = "order"."id" and x.status <> 'canceled')`,
       )
     default:
       return undefined

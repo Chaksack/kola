@@ -52,7 +52,7 @@ function minBasePrice(scope: StoreScope) {
     join ${t.priceSet} ps on ps.id = pr.price_set_id
     join ${t.productVariant} pv on pv.id = ps.variant_id
     left join ${t.priceList} pl on pl.id = pr.price_list_id
-    where pv.product_id = ${t.product.id} and pv.deleted_at is null and pr.deleted_at is null
+    where pv.product_id = "product"."id" and pv.deleted_at is null and pr.deleted_at is null
       and pr.currency_code = ${scope.currencyCode}
       and (pr.region_id is null or pr.region_id = ${scope.regionId})
       and (pr.price_list_id is null or (
@@ -67,7 +67,7 @@ function minBasePrice(scope: StoreScope) {
 const variantAvailable = sql`(
   ${t.productVariant.manageInventory} = false or ${t.productVariant.allowBackorder} = true or exists (
     select 1 from ${t.inventoryItem} ii join ${t.inventoryLevel} il on il.inventory_item_id = ii.id
-    where ii.variant_id = ${t.productVariant.id} group by ii.id having sum(il.stocked - il.reserved) > 0
+    where ii.variant_id = "product_variant"."id" group by ii.id having sum(il.stocked - il.reserved) > 0
   )
 )`
 

@@ -29,8 +29,8 @@ describe.skipIf(!hasServer)('catalog API', () => {
     const all = await c.get<{ data: { title: string; inventory: { status: string } }[]; count: number }>('/api/admin/products?limit=50')
     expect(all.status).toBe(200)
     expect(all.body.count).toBeGreaterThanOrEqual(8)
-    const gift = all.body.data.find((p) => p.title === 'Holiday Gift Card')
-    expect(gift?.inventory.status).toBe('not_tracked')
+    const giftSearch = await c.get<{ data: { title: string; inventory: { status: string } }[] }>('/api/admin/products?q=Holiday%20Gift')
+    expect(giftSearch.body.data.find((p) => p.title === 'Holiday Gift Card')?.inventory.status).toBe('not_tracked')
 
     const bySku = await c.get<{ data: { title: string }[] }>('/api/admin/products?q=ALS-')
     expect(bySku.body.data.map((p) => p.title)).toContain('Adinkra Linen Shirt')

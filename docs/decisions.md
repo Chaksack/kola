@@ -221,3 +221,23 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
   checks and making responses uncacheable. Found by the admin end-to-end test.
 - **The Orders KPI strip sums only orders in the store's default currency.** Other currencies are
   counted, but adding them up needs exchange rates.
+
+## M10: Customers, Promotions and Price lists
+
+- **Lifetime spend is per currency**: total minus refunds over non-canceled, non-draft orders. The list
+  shows the store's default currency; the customer page shows every currency.
+- **Deleting a customer is soft**: their login is removed and orders keep their contact snapshot.
+- **Promotion codes are stored upper-case and matched case-insensitively.** Deleting a promotion suffixes
+  its code so the code can be reused, while orders still reference the original.
+- **Rules builder:** conditions (cart must match: product, collection, category, type, customer group,
+  region, currency, minimum subtotal), targets (which items are discounted), and buy rules (buy-get
+  qualifiers). Minimum subtotal is entered in major units and stored in minor units.
+- **Price lists are edited as a variant × currency grid.** Saving replaces a variant's list prices;
+  clearing every price on a row removes the variant from the list. Customer-group lists only apply to
+  signed-in members of those groups.
+- **Gift card codes are bearer credentials.** The full code is returned once, at creation; lists show
+  the last 4 characters. Balances can be adjusted down but never above the card's value. Redeeming gift
+  cards at checkout isn't wired yet (the totals engine already supports `giftCardBalance`).
+- **Raw SQL subqueries reference outer columns as quoted literals** (`"customer"."id"`). In single-table
+  selections Drizzle renders `${table.column}` unqualified, which would silently bind to the
+  subquery's own `id` column.
