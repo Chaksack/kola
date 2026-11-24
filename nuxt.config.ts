@@ -46,6 +46,10 @@ export default defineNuxtConfig({
     strict: true,
   },
 
+  optimization: {
+    keyedComposables: [{ name: 'useStoreFetch', argumentLength: 3 }],
+  },
+
   // Secrets use the plain env names from .env.example via Nitro env expansion ("{{VAR}}" is
   // resolved at runtime, never inlined at build). NUXT_* overrides still work. Read server values
   // through `useServerConfig()`, which treats unexpanded placeholders as unset.
@@ -95,6 +99,8 @@ export default defineNuxtConfig({
     '/cart': { ssr: true, isr: false },
     '/checkout': { ssr: false },
     '/account/**': { ssr: false },
+    '/shop': { isr: 300 },
+    '/': { isr: 300 },
     '/admin/**': { ssr: false },
     '/api/**': { cors: false, headers: { 'Cache-Control': 'no-store' } },
   },

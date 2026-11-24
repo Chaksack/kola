@@ -1,6 +1,6 @@
 import { dataUrlStorage, vercelBlobStorage, type StorageProvider } from '../providers/storage'
 
-export function useStorage(): StorageProvider {
+export function useFileStorage(): StorageProvider {
   const { blobReadWriteToken, allowDataUrlUploads } = useServerConfig()
   if (blobReadWriteToken) return vercelBlobStorage(blobReadWriteToken)
   if (import.meta.dev || allowDataUrlUploads) return dataUrlStorage()

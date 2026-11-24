@@ -131,3 +131,28 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
   regions may enable a provider before its keys are set; checkout hides unconfigured providers.
 - **`api()` helper (app/utils/api.ts)** wraps `$fetch` for dynamic URLs to avoid Nitro typed-route
   inference hitting TypeScript's depth limit.
+
+## M7: Store API and storefront
+
+- **The promotion engine was built now rather than in M10**, because cart totals need it. It's a pure
+  function (`services/promotion.ts`): automatic promotions first, then codes in the order added. Each
+  promotion discounts what's left, at most one non-stackable promotion applies, and campaign spend
+  budgets cap the amount. Table-driven tests cover rules, allocation, buy-get and stacking.
+- **Pricing** (`services/pricing.ts`): a region-specific price beats a currency-wide one, quantity tiers
+  must match, an `override` list replaces the base price, and a `sale` list applies only when cheaper.
+  Customer-group price lists apply to signed-in members.
+- **Sorting and filtering by price use SQL**, over base prices plus price lists that apply to everyone.
+  The displayed price is the fully calculated one (which also includes customer-group lists).
+- **Catalog pages are ISR-cached for everyone, so the server always renders the store's default
+  region.** The browser applies the saved region (`kola_region` cookie) after hydration and refetches.
+  This keeps cached HTML correct and avoids hydration mismatches.
+- **Cart ids are unguessable ULIDs kept in a `kola_cart` cookie.** A cart is only usable through a key
+  for its sales channel. A cart owned by a customer can't be read by a different signed-in customer.
+- **Line prices are snapshots**, re-priced when the region or customer changes. Lines with no price in
+  the new currency are removed and reported (`removedItems`). Shipping methods are cleared on region
+  change.
+- **Stock is checked when items are added or changed**, against available = stocked − reserved across
+  locations. Reservation itself happens at checkout (M8).
+- **`useStoreFetch`** wraps `useFetch` with the publishable key header and is registered in
+  `optimization.keyedComposables`, so call sites still get unique auto keys.
+- **The storage util is `useFileStorage`** (`useStorage` is Nitro's KV API).

@@ -12,7 +12,7 @@ export default defineApiHandler(async (event) => {
   if (!files.length) throw badRequest('Attach one or more images in the "files" field')
   if (files.length > MAX_FILES) throw badRequest(`Upload at most ${MAX_FILES} files at once`)
 
-  const storage = useStorage()
+  const storage = useFileStorage()
   const limit = storage.id === 'data-url' ? DATA_URL_MAX_BYTES : MAX_BYTES
   const uploaded = []
   for (const f of files) {
