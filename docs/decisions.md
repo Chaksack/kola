@@ -101,3 +101,18 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
   (tests). In production without a token, uploads return 503.
 - **Tests use `TEST_DATABASE_URL`** when it's set (`pnpm test:db` resets, migrates and seeds it), so API
   tests never write into the dev database.
+
+## M5: Inventory and fulfillment setup
+
+- **Every stock change is one conditional UPDATE** (`services/inventory.ts`), so it's atomic on neon-http
+  without a transaction: `reserved += n WHERE stocked − reserved ≥ n`. A concurrency test proves eight
+  parallel reservations of one unit against stock 3 yield exactly three.
+- **Stocked can't be set below reserved**, so committed orders always stay fulfillable (409
+  `insufficient_stock`).
+- **Reservation picks one location per line**: the preferred location first, then whichever has the most
+  available. A line is never split across locations.
+- **Locations can't be deleted** while they're the store default or hold/reserve stock.
+- **Built-in shipping profiles** (`default`, `gift_card`) can't be deleted; custom profiles can, once
+  unused.
+- **Service zone countries come from region countries**, so a location only ships where a region sells.
+- **Shipping option prices are replaced wholesale on save**, like product prices.
