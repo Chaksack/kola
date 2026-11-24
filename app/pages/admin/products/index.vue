@@ -19,6 +19,7 @@ interface ProductRow {
 }
 
 const router = useRouter()
+const exporter = useCsvExport()
 const list = useAdminList<ProductRow>('/api/admin/products', { filters: ['status', 'collectionId', 'salesChannelId'], defaultOrder: '-created_at' })
 const { data, pending, state, search, limit } = list
 
@@ -67,6 +68,7 @@ const channelText = (r: ProductRow) =>
   <div class="page-stack">
     <AdminPageHeader :crumbs="[{ label: 'Commerce' }, { label: 'Products' }]" title="Products" subtitle="Variants, options, pricing per region and stock across locations.">
       <template #actions>
+        <UiButton :loading="Boolean(exporter.progress.value)" @click="exporter.run('/api/admin/exports/products', 'kola-products.csv', 200)">Export</UiButton>
         <UiButton to="/admin/products/import">Import CSV</UiButton>
         <UiButton variant="primary" to="/admin/products/new">Create product</UiButton>
       </template>

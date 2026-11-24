@@ -51,7 +51,7 @@ export default async function setup(project: TestProject) {
   const port = await freePort()
   const baseURL = `http://127.0.0.1:${port}`
   const server: ChildProcess = spawn('node', [`${outDir}/server/index.mjs`], {
-    env: { ...env, PORT: String(port), HOST: '127.0.0.1', NUXT_PUBLIC_STORE_URL: baseURL, NUXT_ALLOW_DATA_URL_UPLOADS: 'true' },
+    env: { ...env, PORT: String(port), HOST: '127.0.0.1', NUXT_PUBLIC_STORE_URL: baseURL, NUXT_ALLOW_DATA_URL_UPLOADS: 'true', NUXT_ALLOW_INSECURE_WEBHOOKS: 'true', WEBHOOK_SIGNING_KEY: 'test-webhook-signing-key' },
     stdio: ['ignore', 'ignore', 'inherit'],
   })
   const deadline = Date.now() + 30_000

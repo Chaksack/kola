@@ -11,6 +11,8 @@ export function useServerConfig() {
     stripeWebhookSecret: configValue(c.stripeWebhookSecret),
     resendApiKey: configValue(c.resendApiKey),
     cronSecret: configValue(c.cronSecret),
+    webhookSigningKey: configValue(c.webhookSigningKey) || configValue(c.cronSecret) || (import.meta.dev ? 'dev-only-webhook-signing-key' : ''),
+    allowInsecureWebhooks: import.meta.dev || Boolean(c.allowInsecureWebhooks),
     emailFrom: c.emailFrom,
     allowDataUrlUploads: Boolean(c.allowDataUrlUploads),
     storeUrl: configValue(c.public.storeUrl) || 'http://localhost:3000',

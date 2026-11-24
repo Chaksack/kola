@@ -233,6 +233,8 @@ useHead({
       </section>
     </div>
 
+    <StoreReviews :handle="product.handle" />
+
     <section v-if="product.related.length" class="related" aria-labelledby="related-title">
       <h2 id="related-title" class="section-heading">You may also like</h2>
       <StoreProductGrid :products="product.related" />

@@ -29,6 +29,7 @@ interface Stats {
 }
 
 const router = useRouter()
+const exporter = useCsvExport()
 const list = useAdminList<OrderRow>('/api/admin/orders', { filters: ['tab', 'paymentStatus', 'fulfillmentStatus', 'salesChannelId', 'regionId'], defaultOrder: 'newest' })
 const { data, pending, state, search, limit } = list
 const tabs = computed(() => (data.value as unknown as { tabs?: Record<string, number> }).tabs ?? { all: 0, unfulfilled: 0, unpaid: 0, returns: 0 })
@@ -97,7 +98,7 @@ const fmtDate = (d: string) => {
   <div class="page-stack">
     <AdminPageHeader :crumbs="[{ label: 'Commerce' }, { label: 'Orders' }]" title="Orders" subtitle="Payments, fulfillments, returns and exchanges across every sales channel.">
       <template #actions>
-        <UiButton to="/admin/orders/export">Export</UiButton>
+        <UiButton :loading="Boolean(exporter.progress.value)" @click="exporter.run('/api/admin/exports/orders', `kola-orders-${new Date().toISOString().slice(0, 10)}.csv`)">Export</UiButton>
         <UiButton variant="primary" to="/admin/draft-orders">Create draft order</UiButton>
       </template>
     </AdminPageHeader>

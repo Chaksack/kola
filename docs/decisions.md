@@ -241,3 +241,31 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
 - **Raw SQL subqueries reference outer columns as quoted literals** (`"customer"."id"`). In single-table
   selections Drizzle renders `${table.column}` unqualified, which would silently bind to the
   subquery's own `id` column.
+
+## M11: Platform
+
+- **Outgoing webhooks are signed with HMAC-SHA256** over `${timestamp}.${body}`, sent as
+  `Kola-Signature: t=<unix>,v1=<hex>`, with `Kola-Event` and `Kola-Delivery` headers. Signing secrets
+  are derived (`HMAC(WEBHOOK_SIGNING_KEY, salt)`), never stored. The row keeps the salt, a SHA-256 of the
+  secret and its last 4 characters, and the secret is shown once. `WEBHOOK_SIGNING_KEY` was added to
+  `.env.example` (falling back to `CRON_SECRET`); rotating it rotates every endpoint's secret.
+- **Delivery:** events are queued in `webhook_delivery` and attempted right away (3s timeout), then
+  retried by the `webhook-retry` cron with backoff of 1m, 5m, 30m, 2h, 6h, 12h, 24h (8 attempts in
+  total). The schedule lives in the database, so retries survive cold starts.
+- **SSRF:** webhook URLs must be https and must not point at loopback, private, link-local or
+  `.internal` hosts. Redirects aren't followed. `NUXT_ALLOW_INSECURE_WEBHOOKS=true` relaxes this for dev
+  and tests. (Literal-host checks only; a DNS-rebinding-proof check would need resolved-IP pinning.)
+- **Crons** are `GET /api/cron/*` with `Authorization: Bearer $CRON_SECRET` (constant-time compare), as
+  Vercel Cron sends. Each run is audit-logged (shown on Settings › Workflows). The same jobs are Nitro
+  tasks (`cart:expiry`, `reservation:release`, `webhook:retry`) for `nitro task run` locally. Jobs are
+  idempotent: rows are deleted before stock is released, so overlapping runs can't double-release.
+- **CSV is chunked by the browser.** Exports return a page of rows plus `nextOffset`, and the client
+  concatenates and downloads. Imports are parsed client-side, grouped by handle and sent 25 products per
+  request; each product saves in its own transaction, so one bad row doesn't sink the file. Exports
+  neutralize spreadsheet formulas (`=`, `+`, `-`, `@`). The CSV isn't uploaded to Blob: rows go
+  straight to the API, which needs no storage round trip.
+- **OpenAPI 3.1 at `/api/docs`** is generated from the same zod schemas the routes validate with
+  (`z.toJSONSchema`), so input docs can't drift. Responses are described in prose.
+- **Reviews** (Extensions) are held for moderation. Store submissions are rate-limited to 5 per hour
+  per IP. **Analytics** reports net sales (total − refunds) in the default currency, as a single-series
+  bar chart with a data-table view.

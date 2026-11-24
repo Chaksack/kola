@@ -61,6 +61,10 @@ export default defineNuxtConfig({
     stripeWebhookSecret: '{{STRIPE_WEBHOOK_SECRET}}',
     resendApiKey: '{{RESEND_API_KEY}}',
     cronSecret: '{{CRON_SECRET}}',
+    // Derives outgoing webhook signing secrets. Falls back to CRON_SECRET when unset.
+    webhookSigningKey: '{{WEBHOOK_SIGNING_KEY}}',
+    // Allow http:// and private hosts for webhook URLs (dev and tests only).
+    allowInsecureWebhooks: false,
     emailFrom: 'Kola Market <orders@kola.market>',
     // Store uploads as data: URLs when no Blob token is set. Always on in dev; NUXT_ALLOW_DATA_URL_UPLOADS=true elsewhere.
     allowDataUrlUploads: false,
@@ -83,6 +87,7 @@ export default defineNuxtConfig({
     preset: process.env.NITRO_PRESET || 'vercel',
     ...(process.env.NITRO_OUTPUT_DIR ? { output: { dir: process.env.NITRO_OUTPUT_DIR } } : {}),
     experimental: { tasks: true, openAPI: false, envExpansion: true },
+    // Vercel Cron calls /api/cron/*; these tasks expose the same jobs to `nitro task run` locally.
     scheduledTasks: {},
   },
 
