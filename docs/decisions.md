@@ -188,3 +188,36 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
 - **E2E runs in real Chrome.** `pnpm test:e2e` builds a node server against `TEST_DATABASE_URL` and
   injects that database's publishable key. `PW_CHANNEL=chrome` uses an installed Chrome instead of
   Playwright's bundled Chromium.
+
+## M9: Admin Orders
+
+- **Statuses are always derived, never set by hand.** `deriveFulfillmentStatus` (from item
+  fulfilled/shipped/delivered quantities) and `derivePaymentStatus` (from authorized/captured/refunded
+  amounts) run at the end of every order action. An order becomes `completed` when it's delivered and
+  paid.
+- **Stock moves when goods physically move.** Creating a fulfillment consumes the reservation at the
+  chosen location (stocked and reserved both go down). A reservation held at another location is moved
+  first. Cancelling an unshipped fulfillment restocks and re-reserves. Cancelling an order releases its
+  reservations. Receiving a return restocks at the chosen location.
+- **Roles:** members can fulfil, ship, deliver, capture, allocate, take notes and handle returns.
+  Refunds, cancellations, exchanges, order edits and recorded payments need `admin`.
+- **Refunds draw from the most recent payments first**, through each payment's provider. Cash on
+  delivery refunds are recorded only.
+- **Cancelling an order** is refused once anything has shipped (use a return). Otherwise authorizations
+  are voided, captures refunded and reservations released.
+- **Returns** can't exceed fulfilled − returned − already-requested quantities. The refund value
+  defaults to the items' paid totals, pro rata.
+- **Exchanges** create a linked return. When it's received, the replacements are added to the order and
+  reserved, the order total moves by the difference, and a negative difference is refunded
+  automatically. A positive difference is collected with "Record a payment".
+- **Order edits are proposed, then confirmed.** Confirming snapshots the previous version into
+  `order_version`, applies the changes (quantities can't drop below what's fulfilled), adjusts
+  reservations, recomputes totals with the totals engine (keeping each line's original per-unit
+  discount), and refunds any captured overpayment. Only one proposed edit at a time.
+- **Draft orders** are orders with `is_draft = true`, priced and taxed like a cart (custom unit prices
+  allowed). Converting reserves stock and records a manual payment, either as paid or as awaiting.
+- **Anonymous requests never get a session cookie.** The session is read only when its cookie exists;
+  otherwise nuxt-auth-utils would issue an empty cookie to every guest, putting them through CSRF
+  checks and making responses uncacheable. Found by the admin end-to-end test.
+- **The Orders KPI strip sums only orders in the store's default currency.** Other currencies are
+  counted, but adding them up needs exchange rates.

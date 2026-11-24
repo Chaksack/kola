@@ -126,3 +126,13 @@ describe.skipIf(!hasServer)('store cart', () => {
     expect((await new Client().get(`/api/store/carts/${cart.id}`)).status).toBe(401)
   })
 })
+
+describe.skipIf(!hasServer)('anonymous store requests', () => {
+  it('never receive a session cookie', async () => {
+    const c = await store()
+    const res = await c.post<{ cart: Cart }>('/api/store/carts', {})
+    expect(res.headers.getSetCookie()).toEqual([])
+    const list = await c.get('/api/store/products?limit=1')
+    expect(list.headers.getSetCookie()).toEqual([])
+  })
+})

@@ -47,8 +47,20 @@ async function adminFromSecretKey(token: string): Promise<AdminActor | null> {
   return { type: 'api_key', id: key.id, role: SECRET_KEY_ROLE }
 }
 
+/**
+ * Read the session only when its cookie exists. Calling getUserSession on an anonymous request makes
+ * nuxt-auth-utils issue an empty session cookie, which would turn every guest into a cookie client
+ * (CSRF checks, no caching).
+ */
+async function readSession(event: H3Event) {
+  const name = useRuntimeConfig().session.name ?? 'nuxt-session'
+  if (!getCookie(event, name)) return null
+  return getUserSession(event)
+}
+
 async function adminFromSession(event: H3Event): Promise<AdminActor | null> {
-  const session = await getUserSession(event)
+  const session = await readSession(event)
+  if (!session) return null
   if (!session.admin) return null
   // Re-read the user so role changes and deletions take effect immediately.
   const [row] = await useDb()
@@ -80,9 +92,9 @@ export async function requireAdmin(event: H3Event, minRole: UserRole = 'member')
 /** The signed-in customer, or null. */
 export async function getCustomer(event: H3Event): Promise<CustomerActor | null> {
   if (event.context.customer !== undefined) return event.context.customer
-  const session = await getUserSession(event)
+  const session = await readSession(event)
   let actor: CustomerActor | null = null
-  if (session.customer) {
+  if (session?.customer) {
     const [row] = await useDb()
       .select({ id: customer.id, email: customer.email, firstName: customer.firstName, lastName: customer.lastName })
       .from(customer)
