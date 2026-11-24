@@ -1,0 +1,51 @@
+/* Kola Commerce — "Warm paper" design tokens. The only place hex values live. */
+:root {
+  /* Ink */
+  --ink: #26251e; /* headings, body, filled primary buttons */
+  --ink-2: #4a4943; /* secondary text, nav items */
+  --ink-3: #6b6a64; /* muted labels (darkened from spec #7a7974 for 4.5:1 contrast) */
+  --ink-60: rgba(38, 37, 30, 0.6); /* second line of a heading pair */
+  /* Surfaces */
+  --paper: #f7f7f4; /* main canvas; reversed text on primary buttons */
+  --putty: #f2f1ed; /* cards, panels, app chrome, footer */
+  --putty-inset: #ebeae5; /* hover rows, badges, inset panels */
+  --control: #e6e5e0; /* active nav item, secondary pills, avatars */
+  --stage-warm: #d9d5cf; /* media / thumbnail backings */
+  --stage-stone: #cac6be;
+  --stage-sage: #cfcebc;
+  --stage-blue: #b6b9be;
+  /* Lines */
+  --rule: #e2e2df; /* = rgba(38,37,30,.10): table rules, card borders */
+  --rule-strong: #d9d8d3; /* input and button borders */
+  --outline: #cdcdc9; /* = 20% ink: pill outlines, dashed "add filter" */
+  /* Accent — small links and markers only, never a filled button or a background */
+  --orange: #f54e00; /* dots and markers only */
+  --orange-text: #c94000; /* link text (accessible on paper) */
+  /* Status */
+  --ok: #3f8f5a;
+  --ok-text: #2f7a4a;
+  --warn: #f54e00;
+  --warn-text: #c94000;
+  --info: #5b7aa8;
+  --danger-text: #b42318;
+  --neutral-dot: #a8a7a1;
+  /* Elevation — floating windows, menus and modals only */
+  --shadow-float: 0 1px 2px rgba(38, 37, 30, 0.06), 0 8px 24px rgba(38, 37, 30, 0.12);
+  --scrim: rgba(38, 37, 30, 0.32);
+  /* Shape and rhythm */
+  --radius: 4px; /* cards, inputs, thumbnails */
+  --radius-pill: 999px; /* buttons, filter tabs */
+  --gutter: 10px;
+  --section-gap: 67px;
+  --font-sans: 'Inter', system-ui, sans-serif; /* substitute for CursorGothic */
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace; /* IDs, SKUs, codes, keys */
+  /* Type scale */
+  --fs-display: 72px;
+  --fs-section: 36px;
+  --fs-title: 26px;
+  --fs-lead: 22px;
+  --fs-body: 14px;
+  --fs-ui: 13px;
+  --fs-meta: 12px;
+  --fs-eyebrow: 11px;
+}

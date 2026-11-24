@@ -1,0 +1,216 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+p {
+  margin: 0;
+}
+
+b,
+strong {
+  font-weight: 500;
+}
+
+a {
+  color: var(--orange-text);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--control);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+
+code,
+kbd,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  letter-spacing: 0;
+}
+
+.num,
+.money {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--ink-3);
+}
+.ink-2 {
+  color: var(--ink-2);
+}
+
+.eyebrow {
+  font-size: var(--fs-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.page-title {
+  font-size: var(--fs-title);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.section-heading {
+  font-size: var(--fs-section);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.lead {
+  font-size: var(--fs-lead);
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+.display {
+  font-size: var(--fs-display);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.heading-second {
+  color: var(--ink-60);
+}
+
+.meta {
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+}
+
+.text-ok {
+  color: var(--ok-text);
+}
+.text-warn {
+  color: var(--warn-text);
+}
+.text-danger {
+  color: var(--danger-text);
+}
+
+.link {
+  color: var(--orange-text);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap, 12px);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--row-gap, 8px);
+  flex-wrap: wrap;
+}
+.spacer {
+  flex: 1 1 auto;
+}
+
+/* Definition lists used for summaries and totals */
+.dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 16px;
+  margin: 0;
+  font-size: var(--fs-ui);
+}
+.dl dt {
+  color: var(--ink-2);
+}
+.dl dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.dl .dl-total {
+  border-top: 1px solid var(--rule);
+  padding-top: 8px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* Form grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
