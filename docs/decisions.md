@@ -46,3 +46,34 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
   `kola-demo-1234`.
 - **The seed's publishable key** uses `NUXT_PUBLIC_PUBLISHABLE_KEY` when it's set, so the storefront and
   the database agree. Otherwise it generates one and prints it.
+
+## M3: Auth
+
+- **The session holds two keys, `admin` and `customer`**, instead of nuxt-auth-utils' single `user`, so
+  one browser can be signed into both surfaces. `setSessionActor()` updates one without touching the
+  other. Server helpers re-read the user or customer row on every request, so role changes and
+  deletions apply immediately.
+- **Errors come from a handler wrapper, not a global error handler.** Nitro allows only one error
+  handler and Nuxt uses it for the error page. `defineApiHandler` / `defineValidatedHandler` catch
+  everything and return `{ code, message, details }`. `server/api/[...path].ts` returns a JSON 404 for
+  unknown API routes.
+- **Env vars keep their spec names** (`DATABASE_URL`, `CRON_SECRET`, …) through Nitro `envExpansion`
+  (`'{{DATABASE_URL}}'` in `runtimeConfig`), resolved at runtime and never inlined at build. Server code
+  reads them via `useServerConfig()`, which treats unexpanded placeholders as unset.
+- **Role rules.** owner > admin > member. Members can read users and keys but can't invite, change roles
+  or create/revoke keys. Admins can't create, promote to or modify owners. The last owner can't be
+  demoted. Secret API keys act as `admin` and can't mint more secret keys.
+- **Invites return the accept URL once** in the API response (only a SHA-256 of the token is stored).
+  An email is sent too once notifications land in M8.
+- **Keys must be revoked before they can be deleted.** Publishable tokens are stored in plaintext (they
+  are public by design); secret tokens are stored only as SHA-256 hashes, with a redacted
+  `sk_…last4` for display.
+- **Rate limiting is a fixed window in Postgres** (`rate_limit` table, one upsert per check), keyed by IP
+  and, for logins, also by email.
+- **CSRF:** SameSite=Lax cookies plus an Origin/Referer host check on unsafe `/api` requests that carry
+  the session cookie. Bearer-key, webhook and cron requests are exempt.
+- **API tests run over real HTTP.** A Vitest global setup builds a `node-server` copy of the app into
+  `.output-test` (with its own `.nuxt-test` build dir, so it never clobbers `nuxt dev`) and starts it
+  against the seeded DB. `KOLA_TEST_URL` points the tests at a running server instead;
+  `KOLA_TEST_SKIP_BUILD=1` reuses the last build.
+- **Customer login/register pages ship with the storefront in M7.** M3 delivers the customer auth API.

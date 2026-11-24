@@ -39,6 +39,7 @@ const TONES: Record<string, StatusTone> = {
   disabled: 'neutral',
   archived: 'neutral',
   expired: 'neutral',
+  revoked: 'neutral',
   not_tracked: 'neutral',
   // danger
   canceled: 'danger',

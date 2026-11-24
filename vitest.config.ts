@@ -24,6 +24,7 @@ export default defineConfig({
           environment: 'node',
           include: ['tests/api/**/*.test.ts'],
           setupFiles: ['tests/api/setup.ts'],
+          globalSetup: ['tests/api/global-setup.ts'],
           fileParallelism: false,
           testTimeout: 30_000,
           hookTimeout: 60_000,

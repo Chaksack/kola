@@ -22,6 +22,8 @@ const securityHeaders = {
 export default defineNuxtConfig({
   compatibilityDate: '2026-11-01',
   devtools: { enabled: true },
+  // API tests build into a separate dir so they never clobber a running `nuxt dev`.
+  ...(process.env.NUXT_BUILD_DIR ? { buildDir: process.env.NUXT_BUILD_DIR } : {}),
   modules: ['@nuxt/eslint', '@pinia/nuxt', '@nuxt/image', 'nuxt-auth-utils'],
 
   css: ['~/assets/css/tokens.css', '~/assets/css/base.css'],
@@ -44,17 +46,18 @@ export default defineNuxtConfig({
     strict: true,
   },
 
+  // Secrets use the plain env names from .env.example via Nitro env expansion ("{{VAR}}" is
+  // resolved at runtime, never inlined at build). NUXT_* overrides still work. Read server values
+  // through `useServerConfig()`, which treats unexpanded placeholders as unset.
   runtimeConfig: {
-    databaseUrl: '',
-    blobReadWriteToken: '',
-    paystackSecretKey: '',
-    stripeSecretKey: '',
-    stripeWebhookSecret: '',
-    resendApiKey: '',
+    databaseUrl: '{{DATABASE_URL}}',
+    blobReadWriteToken: '{{BLOB_READ_WRITE_TOKEN}}',
+    paystackSecretKey: '{{PAYSTACK_SECRET_KEY}}',
+    stripeSecretKey: '{{STRIPE_SECRET_KEY}}',
+    stripeWebhookSecret: '{{STRIPE_WEBHOOK_SECRET}}',
+    resendApiKey: '{{RESEND_API_KEY}}',
+    cronSecret: '{{CRON_SECRET}}',
     emailFrom: 'Kola Market <orders@kola.market>',
-    cronSecret: '',
-    adminSeedEmail: '',
-    adminSeedPassword: '',
     // Sessions are sealed with a key derived from Nuxt's appSecret (NUXT_APP_SECRET).
     session: {
       name: 'kola-session',
@@ -64,15 +67,16 @@ export default defineNuxtConfig({
     public: {
       storeUrl: 'http://localhost:3000',
       publishableKey: '',
-      // Publishable keys are safe to inline at build time.
-      paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY ?? '',
-      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '',
+      paystackPublicKey: '{{PAYSTACK_PUBLIC_KEY}}',
+      stripePublishableKey: '{{STRIPE_PUBLISHABLE_KEY}}',
     },
   },
 
   nitro: {
-    preset: 'vercel',
-    experimental: { tasks: true, openAPI: false },
+    // NITRO_PRESET lets tests build a node server; Vercel is the default and the deploy target.
+    preset: process.env.NITRO_PRESET || 'vercel',
+    ...(process.env.NITRO_OUTPUT_DIR ? { output: { dir: process.env.NITRO_OUTPUT_DIR } } : {}),
+    experimental: { tasks: true, openAPI: false, envExpansion: true },
     scheduledTasks: {},
   },
 

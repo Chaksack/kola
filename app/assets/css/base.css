@@ -214,3 +214,18 @@ kbd,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Label for fieldsets and custom controls; matches UiInput labels */
+.field-label {
+  font-size: var(--fs-meta);
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+/* Page wrapper inside the admin content area (pages need a single root element) */
+.page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}

@@ -12,6 +12,7 @@ const props = defineProps<{
   hideLabel?: boolean
   required?: boolean
   pill?: boolean
+  disabled?: boolean
 }>()
 const model = defineModel<string | null>()
 const autoId = useId()
@@ -22,7 +23,7 @@ const selectId = computed(() => props.id ?? autoId)
   <div class="ui-field">
     <label v-if="label" :for="selectId" class="ui-field__label" :class="{ 'sr-only': hideLabel }">{{ label }}</label>
     <div class="ui-select-wrap" :class="{ pill }">
-      <select :id="selectId" v-model="model" class="ui-select" :required="required">
+      <select :id="selectId" v-model="model" class="ui-select" :required="required" :disabled="disabled">
         <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
         <option v-for="o in options" :key="o.value" :value="o.value" :disabled="o.disabled">{{ o.label }}</option>
       </select>

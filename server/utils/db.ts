@@ -1,10 +1,9 @@
 import { createDb, withTx, type Db, type Tx } from '../db/client'
 
 export type { Db, Tx, DbLike } from '../db/client'
-export * as tables from '../db/schema'
 
 function databaseUrl(): string {
-  const url = useRuntimeConfig().databaseUrl
+  const url = useServerConfig().databaseUrl
   if (!url) throw createError({ statusCode: 500, message: 'DATABASE_URL is not configured' })
   return url
 }

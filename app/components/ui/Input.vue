@@ -9,6 +9,8 @@ const props = withDefaults(
     placeholder?: string
     required?: boolean
     disabled?: boolean
+    readonly?: boolean
+    name?: string
     mono?: boolean
     autocomplete?: string
     min?: string | number
@@ -40,6 +42,8 @@ const inputId = computed(() => props.id ?? autoId)
         :placeholder="placeholder"
         :required="required"
         :disabled="disabled"
+        :readonly="readonly"
+        :name="name"
         :autocomplete="autocomplete"
         :min="min"
         :max="max"

@@ -12,7 +12,7 @@ import {
 } from '@lucide/vue'
 
 const route = useRoute()
-const { user } = useUserSession()
+const { session } = useUserSession()
 const { data: counts } = await useFetch<{ unfulfilled: number }>('/api/admin/stats/nav', {
   key: 'admin-nav-counts',
   default: () => ({ unfulfilled: 0 }),
@@ -36,8 +36,8 @@ const productsOpen = computed(
 )
 const ordersOpen = computed(() => ['/admin/orders', '/admin/draft-orders', '/admin/returns', '/admin/exchanges'].some((p) => isActive(p)))
 const displayName = computed(() => {
-  const u = user.value as { name?: string; email?: string } | null
-  return u?.name || u?.email || 'Admin'
+  const a = session.value?.admin
+  return a?.name || a?.email || 'Admin'
 })
 </script>
 
