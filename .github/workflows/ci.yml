@@ -22,6 +22,9 @@ jobs:
       DATABASE_URL: postgres://kola:kola@localhost:5432/kola_test
       NUXT_APP_SECRET: ci-only-secret-that-is-at-least-32-characters-long
       CRON_SECRET: ci-cron-secret
+      ADMIN_SEED_EMAIL: owner@kola.test
+      ADMIN_SEED_PASSWORD: ci-owner-password
+      NUXT_PUBLIC_PUBLISHABLE_KEY: pk_ci_test_key
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -33,5 +36,6 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm db:migrate
+      - run: pnpm db:seed
       - run: pnpm test
       - run: pnpm build
