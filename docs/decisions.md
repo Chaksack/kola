@@ -156,3 +156,35 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
 - **`useStoreFetch`** wraps `useFetch` with the publishable key header and is registered in
   `optimization.keyedComposables`, so call sites still get unique auto keys.
 - **The storage util is `useFileStorage`** (`useStorage` is Nitro's KV API).
+
+## M8: Checkout
+
+- **Completion is a saga** (`services/workflow.ts`): validate → reserve inventory → authorize payment →
+  create order (one transaction) → emit `order.placed` after commit. A failure compensates in reverse:
+  reservations are released and deleted, and payments are voided (Stripe) or refunded (Paystack, which
+  captures immediately).
+- **Exactly one order per cart.** `order.cart_id` is unique, a completed cart returns its existing order,
+  and the `Idempotency-Key` header stores and replays the response. A concurrent duplicate gets 409; a key
+  reused for a different request gets 422; a failed attempt frees the key for a retry.
+- **The payment session must match the current cart total and currency**, or completion returns 409
+  `payment_session_stale` and the shopper confirms payment again.
+- **Providers:** Paystack (`paystack` = card/bank/momo, `paystack-momo` = mobile money only) charges
+  immediately, so verified means captured. Stripe uses manual capture, so checkout authorizes and the admin
+  captures. Manual (cash on delivery) places the order with payment `awaiting`.
+- **Checkout only offers providers that are enabled for the region and configured.** With no keys set,
+  Ghana checkout works with cash on delivery out of the box.
+- **Webhooks** verify signatures on the raw body (Paystack HMAC-SHA512, Stripe `constructEvent`), record
+  each provider event id once, and always return 200 once verified. A paid cart that never completed
+  (tab closed) is completed from the webhook.
+- **Guests become customers with `has_account = false`**, so their history shows in the admin;
+  registering later upgrades that record.
+- **Order lookup** requires the order id plus email (or the owning signed-in customer), or the display
+  number plus email. "Not found" and "wrong email" get the same 404, so ids can't be probed.
+- **Emails go through a notification provider** (Resend, or a console logger that never prints bodies).
+  Failures are logged in `notification` and never break checkout. Invite URLs hold a raw token, so they
+  go straight to the email and are never stored in the domain event log.
+- **Shipping methods are per shipping profile.** Picking another option for the same profile replaces
+  it; every profile in the cart needs a method.
+- **E2E runs in real Chrome.** `pnpm test:e2e` builds a node server against `TEST_DATABASE_URL` and
+  injects that database's publishable key. `PW_CHANNEL=chrome` uses an installed Chrome instead of
+  Playwright's bundled Chromium.

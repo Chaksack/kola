@@ -246,8 +246,12 @@ export async function getCartView(db: DbLike, id: string) {
     now: new Date(),
   })
   const shippingRate = taxEnabled ? taxRateFor(rates, null) : 0
+  const itemRates = items.map((i) => (taxEnabled ? taxRateFor(rates, i.productTypeId) : 0))
+  const profiles = items.length
+    ? await db.select({ id: t.product.id, profileId: t.product.shippingProfileId }).from(t.product).where(inArray(t.product.id, [...new Set(items.map((i) => i.productId))]))
+    : []
   const totals = computeTotals({
-    items: items.map((i) => ({ id: i.id, unitPrice: i.unitPrice, quantity: i.quantity, taxRateBps: taxEnabled ? taxRateFor(rates, i.productTypeId) : 0, isTaxInclusive: region.taxInclusive, discount: promo.itemDiscounts[i.id] ?? 0 })),
+    items: items.map((i, idx) => ({ id: i.id, unitPrice: i.unitPrice, quantity: i.quantity, taxRateBps: itemRates[idx]!, isTaxInclusive: region.taxInclusive, discount: promo.itemDiscounts[i.id] ?? 0 })),
     shippingMethods: shippingMethods.map((s) => ({ id: s.id, amount: s.amount, taxRateBps: shippingRate, isTaxInclusive: region.taxInclusive, discount: promo.shippingDiscounts[s.id] ?? 0 })),
   })
 
@@ -278,8 +282,13 @@ export async function getCartView(db: DbLike, id: string) {
       compareAtUnitPrice: i.compareAtUnitPrice,
       isGiftcard: i.isGiftcard,
       requiresShipping: i.requiresShipping,
+      collectionId: i.collectionId,
+      productTypeId: i.productTypeId,
+      shippingProfileId: profiles.find((p) => p.id === i.productId)?.profileId ?? null,
+      taxRateBps: itemRates[idx]!,
+      isTaxInclusive: region.taxInclusive,
     })),
-    shippingMethods: shippingMethods.map((s, idx) => ({ ...totals.shippingMethods[idx]!, id: s.id, shippingOptionId: s.shippingOptionId, name: s.name, amount: s.amount })),
+    shippingMethods: shippingMethods.map((s, idx) => ({ ...totals.shippingMethods[idx]!, id: s.id, shippingOptionId: s.shippingOptionId, name: s.name, amount: s.amount, taxRateBps: shippingRate, shippingProfileId: (s.data?.shippingProfileId as string | undefined) ?? null })),
     promotions: promo.applied.map((a) => ({ promotionId: a.promotionId, code: a.code, amount: a.amount, isAutomatic: defs.find((d) => d.id === a.promotionId)?.isAutomatic ?? false })),
     rejectedPromotions: promo.rejected
       .filter((r) => promoLinks.some((l) => l.promotionId === r.promotionId))

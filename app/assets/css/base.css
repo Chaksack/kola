@@ -180,7 +180,8 @@ kbd,
 .dl {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 8px 16px;
+  /* No column gap, so the total's top rule runs unbroken across both cells */
+  gap: 8px 0;
   margin: 0;
   font-size: var(--fs-ui);
 }
@@ -189,6 +190,7 @@ kbd,
 }
 .dl dd {
   margin: 0;
+  padding-left: 16px;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }

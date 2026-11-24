@@ -76,5 +76,5 @@ export const useCartStore = defineStore('cart', () => {
     cart.value = null
   }
 
-  return { cart, drawerOpen, busy, error, notice, count, load, ensure, add, update, remove, applyCode, removeCode, updateCart, setRegion, clear }
+  return { cart, drawerOpen, busy, error, notice, count, run, load, ensure, add, update, remove, applyCode, removeCode, updateCart, setRegion, clear }
 })

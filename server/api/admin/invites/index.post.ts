@@ -2,6 +2,7 @@ import { and, eq, isNull } from 'drizzle-orm'
 import { inviteCreateSchema } from '#shared/schemas/auth'
 import { canAssignRole } from '#shared/utils/roles'
 import { invite, user } from '../../../db/schema'
+import { inviteEmail } from '../../../services/email-templates'
 
 const INVITE_TTL_DAYS = 7
 
@@ -25,7 +26,9 @@ export default defineValidatedHandler({ body: inviteCreateSchema }, async (event
     .returning({ id: invite.id, email: invite.email, role: invite.role, expiresAt: invite.expiresAt })
   const url = `${useServerConfig().storeUrl}/admin/invite?token=${encodeURIComponent(token)}`
   await audit(event, actor, 'invite.created', 'invite', row!.id, { email: body.email, role: body.role })
-  await emitEvent('invite.created', { id: row!.id, email: body.email, role: body.role, url })
+  // The URL holds the raw token, so it goes straight to the email and never into the event log.
+  await sendEmail('invite', inviteEmail({ email: body.email, role: body.role, url }), row!.id)
+  await emitEvent('invite.created', { id: row!.id, email: body.email, role: body.role })
   // The URL is returned once so the inviter can share it directly; only its hash is stored.
   return { invite: row, url }
 })
