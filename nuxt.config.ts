@@ -58,6 +58,8 @@ export default defineNuxtConfig({
     resendApiKey: '{{RESEND_API_KEY}}',
     cronSecret: '{{CRON_SECRET}}',
     emailFrom: 'Kola Market <orders@kola.market>',
+    // Store uploads as data: URLs when no Blob token is set. Always on in dev; NUXT_ALLOW_DATA_URL_UPLOADS=true elsewhere.
+    allowDataUrlUploads: false,
     // Sessions are sealed with a key derived from Nuxt's appSecret (NUXT_APP_SECRET).
     session: {
       name: 'kola-session',

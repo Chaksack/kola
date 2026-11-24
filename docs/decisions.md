@@ -77,3 +77,27 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
   against the seeded DB. `KOLA_TEST_URL` points the tests at a running server instead;
   `KOLA_TEST_SKIP_BUILD=1` reuses the last build.
 - **Customer login/register pages ship with the storefront in M7.** M3 delivers the customer auth API.
+
+## M4: Catalog
+
+- **Products are saved whole.** `POST /api/admin/products/:id` takes the full product (options,
+  variants, prices, stock, media, links), matching the full-page editor. Options are matched by title
+  and values by value; variants by id. Removed variants are soft-deleted with their SKU cleared, so
+  order history keeps its references and the SKU can be reused. The whole save runs in one `useTx`
+  transaction.
+- **Updates use POST** (Medusa convention) rather than PUT/PATCH.
+- **Variant generation.** With options but no variants, the server builds the full option matrix; with
+  neither, one `Default` variant. The editor regenerates the matrix live and keeps existing variants
+  whose combination still exists, including across option renames.
+- **Prices in the editor are per currency**, with optional per-region override columns. Inputs are
+  major units converted with `toMinor` (string parsing, no floats). Price-list prices are never touched
+  by the product save.
+- **Stock** is only written for locations sent in `inventory`; omitting it leaves levels unchanged.
+- **Soft-deleted products and collections get their handle suffixed** (`-deleted-<id>`) so the unique
+  handle can be reused. Categories, types and tags are hard-deleted; links cascade.
+- **Uploads are identified by magic bytes** (JPEG, PNG, WebP, AVIF, GIF), never by the client's content
+  type or file name; 5MB per file, 10 files per request. With no `BLOB_READ_WRITE_TOKEN`, uploads fall
+  back to `data:` URLs (capped at 1MB): always in dev, or with `NUXT_ALLOW_DATA_URL_UPLOADS=true`
+  (tests). In production without a token, uploads return 503.
+- **Tests use `TEST_DATABASE_URL`** when it's set (`pnpm test:db` resets, migrates and seeds it), so API
+  tests never write into the dev database.

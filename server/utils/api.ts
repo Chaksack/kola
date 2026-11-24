@@ -1,24 +1,9 @@
 import type { H3Event } from 'h3'
 import { ZodError, type z, type ZodType } from 'zod'
 import type { ApiErrorBody, ListResponse } from '#shared/schemas/common'
+import { ApiError } from '../services/errors'
 
-/** Throw this (or `apiError(...)`) from any handler; the wrapper turns it into `{ code, message, details }`. */
-export class ApiError extends Error {
-  constructor(
-    public statusCode: number,
-    public code: string,
-    message: string,
-    public details?: unknown,
-  ) {
-    super(message)
-  }
-}
-
-export const apiError = (statusCode: number, code: string, message: string, details?: unknown) =>
-  new ApiError(statusCode, code, message, details)
-export const notFound = (what: string) => apiError(404, 'not_found', `${what} not found`)
-export const badRequest = (message: string, details?: unknown) => apiError(400, 'invalid_request', message, details)
-export const conflict = (message: string, details?: unknown) => apiError(409, 'conflict', message, details)
+export { ApiError, apiError, badRequest, conflict, notFound } from '../services/errors'
 
 function zodDetails(err: ZodError) {
   return err.issues.map((i) => ({ path: i.path.join('.'), message: i.message }))

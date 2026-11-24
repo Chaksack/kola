@@ -12,6 +12,7 @@ export function useServerConfig() {
     resendApiKey: configValue(c.resendApiKey),
     cronSecret: configValue(c.cronSecret),
     emailFrom: c.emailFrom,
+    allowDataUrlUploads: Boolean(c.allowDataUrlUploads),
     storeUrl: configValue(c.public.storeUrl) || 'http://localhost:3000',
     publishableKey: configValue(c.public.publishableKey),
   }

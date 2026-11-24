@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import './env'
 import { afterAll, beforeEach } from 'vitest'
 import { closeDb, createDb } from '../../server/db/client'
 import { rateLimit } from '../../server/db/schema'

@@ -15,17 +15,18 @@ export class Client {
   constructor(private defaults: Record<string, string> = {}) {}
 
   async request<T = Record<string, unknown>>(method: string, path: string, body?: unknown, headers: Record<string, string> = {}): Promise<ApiResult<T>> {
+    const isForm = body instanceof FormData
     const res = await fetch(`${baseURL}${path}`, {
       method,
       headers: {
         accept: 'application/json',
         origin: baseURL,
-        ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
+        ...(body !== undefined && !isForm ? { 'content-type': 'application/json' } : {}),
         ...(this.cookies.size ? { cookie: [...this.cookies].map(([k, v]) => `${k}=${v}`).join('; ') } : {}),
         ...this.defaults,
         ...headers,
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: isForm ? body : body !== undefined ? JSON.stringify(body) : undefined,
       redirect: 'manual',
     })
     for (const c of res.headers.getSetCookie()) {

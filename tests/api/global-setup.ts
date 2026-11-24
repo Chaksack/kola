@@ -3,7 +3,7 @@
  * URL to the API tests. Set KOLA_TEST_URL to test an already-running server instead (for example
  * `pnpm dev`), or KOLA_TEST_SKIP_BUILD=1 to reuse the last build in .output-test.
  */
-import 'dotenv/config'
+import './env'
 import { spawn, execSync, type ChildProcess } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { createServer } from 'node:net'
@@ -51,7 +51,7 @@ export default async function setup(project: TestProject) {
   const port = await freePort()
   const baseURL = `http://127.0.0.1:${port}`
   const server: ChildProcess = spawn('node', [`${outDir}/server/index.mjs`], {
-    env: { ...env, PORT: String(port), HOST: '127.0.0.1', NUXT_PUBLIC_STORE_URL: baseURL, NODE_ENV: 'test' },
+    env: { ...env, PORT: String(port), HOST: '127.0.0.1', NUXT_PUBLIC_STORE_URL: baseURL, NUXT_ALLOW_DATA_URL_UPLOADS: 'true' },
     stdio: ['ignore', 'ignore', 'inherit'],
   })
   const deadline = Date.now() + 30_000
