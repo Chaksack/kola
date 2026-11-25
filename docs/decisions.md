@@ -296,8 +296,9 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
 - **E2E admin tests share one session.** The global setup signs in once via the API and saves the
   session, because logging in per test trips the login rate limiter. The setup also clears
   `rate_limit`.
-- **Crons are declared twice**: in `vercel.json` (Git deploys) and in `nitro.vercel.config.crons`, so
-  they land in `.vercel/output/config.json` for prebuilt deploys. Both are daily so Hobby deploys pass
-  (Hobby rejects anything more frequent); Pro deploys should restore hourly / 15-minute schedules.
+- **Crons are declared once**, in `nitro.vercel.config.crons`, which lands in `.vercel/output/config.json`
+  for Git and prebuilt deploys alike. They used to be in `vercel.json` too, but Vercel merges the two and
+  rejects the duplicates. They're daily so Hobby deploys pass (Hobby rejects anything more frequent);
+  Pro deploys should restore hourly / 15-minute schedules.
 - **CI** runs `check` (typecheck, lint, migrate, seed, unit+API tests, build) and then `e2e`
   (Playwright with bundled Chromium against a freshly seeded Postgres service).

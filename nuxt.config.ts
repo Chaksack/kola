@@ -89,12 +89,12 @@ export default defineNuxtConfig({
     experimental: { tasks: true, openAPI: false, envExpansion: true },
     // Vercel Cron calls /api/cron/*; these tasks expose the same jobs to `nitro task run` locally.
     scheduledTasks: {},
-    // Same schedule as vercel.json, written into .vercel/output/config.json so prebuilt deploys
-    // (`vercel deploy --prebuilt`) get the crons too.
+    // The only cron declaration: Nitro writes it into .vercel/output/config.json, which Vercel reads for
+    // Git and prebuilt deploys alike. Don't add crons to vercel.json too; Vercel rejects the duplicates.
     vercel: {
       config: {
         crons: [
-          // Daily so Hobby deploys pass. On Pro use 0 * * * *, 30 * * * * and */15 * * * * (here and in vercel.json).
+          // Daily so Hobby deploys pass. On Pro use 0 * * * *, 30 * * * * and */15 * * * *.
           { path: '/api/cron/cart-expiry', schedule: '0 3 * * *' },
           { path: '/api/cron/reservation-release', schedule: '30 3 * * *' },
           { path: '/api/cron/webhook-retry', schedule: '0 4 * * *' },

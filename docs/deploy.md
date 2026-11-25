@@ -50,7 +50,8 @@ DATABASE_URL=… ADMIN_SEED_EMAIL=… ADMIN_SEED_PASSWORD=… pnpm db:seed   # d
 
 ## 5. Crons
 
-`vercel.json` schedules the jobs once a day, which works on every plan (Vercel's Hobby plan rejects a
+`nitro.vercel.config.crons` in `nuxt.config.ts` schedules the jobs once a day (Nitro writes them into the
+build output, so they aren't in `vercel.json`). That works on every plan (Vercel's Hobby plan rejects a
 deploy that schedules a cron more often). They're active once deployed to Production:
 
 | Path | Schedule (UTC) |
@@ -61,9 +62,9 @@ deploy that schedules a cron more often). They're active once deployed to Produc
 
 - [ ] Check that runs appear under Settings › Workflows › Scheduled jobs after the first day. Hobby may
       start a daily job any time within its hour.
-- [ ] **On Pro**, restore the intended schedules in both `vercel.json` and `nitro.vercel.config.crons` in
-      `nuxt.config.ts`: `cart-expiry` `0 * * * *` (hourly),
-      `reservation-release` `30 * * * *` (hourly at :30), `webhook-retry` `*/15 * * * *` (every 15 minutes).
+- [ ] **On Pro**, restore the intended schedules in `nitro.vercel.config.crons`: `cart-expiry` `0 * * * *`
+      (hourly), `reservation-release` `30 * * * *` (hourly at :30), `webhook-retry` `*/15 * * * *` (every
+      15 minutes).
 
 ### Hobby plan: run the crons from GitHub Actions
 
