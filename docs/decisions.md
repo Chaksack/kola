@@ -257,9 +257,11 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
   and tests. (Literal-host checks only; a DNS-rebinding-proof check would need resolved-IP pinning.)
 - **Crons** are `GET /api/cron/*` with `Authorization: Bearer $CRON_SECRET` (constant-time compare), as
   Vercel Cron sends. On Hobby, where Vercel Cron is daily-only, `.github/workflows/cron.yml` calls the
-  same endpoints every 30 minutes (opt-in via the `CRON_BASE_URL` repo variable). Each run is
-  audit-logged (shown on Settings › Workflows). The same jobs are Nitro tasks (`cart:expiry`, `reservation:release`, `webhook:retry`) for `nitro task run` locally. Jobs are
-  idempotent: rows are deleted before stock is released, so overlapping runs can't double-release.
+  same endpoints once a day for now, with hourly schedules commented out (opt-in via the
+  `CRON_BASE_URL` repo variable). Each run is audit-logged (shown on Settings › Workflows). The same
+  jobs are Nitro tasks (`cart:expiry`, `reservation:release`, `webhook:retry`) for `nitro task run`
+  locally. Jobs are idempotent: rows are deleted before stock is released, so overlapping runs can't
+  double-release.
 - **CSV is chunked by the browser.** Exports return a page of rows plus `nextOffset`, and the client
   concatenates and downloads. Imports are parsed client-side, grouped by handle and sent 25 products per
   request; each product saves in its own transaction, so one bad row doesn't sink the file. Exports

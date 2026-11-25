@@ -8,13 +8,15 @@ name: Crons
 #   - Secret `CRON_SECRET`: the same value as the Vercel project's CRON_SECRET.
 #   - Secret `VERCEL_AUTOMATION_BYPASS_SECRET` (optional): only if Deployment Protection covers that URL.
 #
-# Every scheduled run is one job (~1 billed minute on private repos). Twice an hour is ~1,440 minutes a
-# month; public repos aren't billed and can uncomment the :15/:45 line to retry webhooks every 15 minutes.
+# For now it runs once a day. For more frequent runs, swap the daily line for the commented ones. Every
+# scheduled run is one job (~1 billed minute on private repos): twice an hour is ~1,440 minutes a month;
+# public repos aren't billed and can also enable the :15/:45 line to retry webhooks every 15 minutes.
 
 on:
   schedule:
-    - cron: '0 * * * *' # cart-expiry + webhook-retry
-    - cron: '30 * * * *' # reservation-release + webhook-retry
+    - cron: '0 3 * * *' # daily: all jobs
+    # - cron: '0 * * * *' # cart-expiry + webhook-retry
+    # - cron: '30 * * * *' # reservation-release + webhook-retry
     # - cron: '15,45 * * * *' # webhook-retry
   workflow_dispatch:
     inputs:
@@ -44,6 +46,7 @@ jobs:
           INPUT: ${{ inputs.job }}
         run: |
           case "$SCHEDULE" in
+            '0 3 * * *')     jobs='cart-expiry reservation-release webhook-retry' ;;
             '0 * * * *')     jobs='cart-expiry webhook-retry' ;;
             '30 * * * *')    jobs='reservation-release webhook-retry' ;;
             '15,45 * * * *') jobs='webhook-retry' ;;

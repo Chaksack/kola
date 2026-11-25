@@ -76,14 +76,15 @@ often fails. `.github/workflows/cron.yml` calls the same endpoints from GitHub A
 
 | Schedule (UTC) | Jobs |
 |---|---|
-| :00 every hour | `cart-expiry`, `webhook-retry` |
-| :30 every hour | `reservation-release`, `webhook-retry` |
+| 03:00 daily | `cart-expiry`, `reservation-release`, `webhook-retry` |
 
 Things to know:
 
-- Webhook retries run every 30 minutes rather than 15. Each run bills about one Actions minute on private
-  repos (~1,440 a month, inside the 2,000 free); public repos aren't billed and can uncomment the
-  `15,45 * * * *` line in the workflow to match the Pro schedule.
+- It currently runs once a day, so expired carts, stale reservations and webhook retries wait up to a day.
+  For more frequent runs, comment out the daily line in the workflow and uncomment the hourly `0 * * * *`
+  and `30 * * * *` lines (webhook retries every 30 minutes). Each run bills about one Actions minute on
+  private repos (~1,440 a month at that rate, inside the 2,000 free); public repos aren't billed and can
+  also uncomment `15,45 * * * *` to match the Pro schedule.
 - GitHub runs schedules only from the default branch, often starts them several minutes late, and
   disables them in public repos after 60 days with no commits. Re-enable from the Actions tab if that happens.
 - Don't run both Vercel Cron and the workflow at full frequency. Overlap is safe (jobs are idempotent),
