@@ -1,0 +1,84 @@
+name: Crons
+
+# Calls the /api/cron/* jobs from GitHub Actions. Use this when the Vercel project is on the Hobby plan,
+# where Vercel Cron runs at most once a day. See docs/deploy.md § 5.
+#
+# Setup (Settings › Secrets and variables › Actions):
+#   - Variable `CRON_BASE_URL`: production URL, e.g. https://shop.example.com. Runs are skipped until it's set.
+#   - Secret `CRON_SECRET`: the same value as the Vercel project's CRON_SECRET.
+#   - Secret `VERCEL_AUTOMATION_BYPASS_SECRET` (optional): only if Deployment Protection covers that URL.
+#
+# For now it runs once a day. For more frequent runs, swap the daily line for the commented ones. Every
+# scheduled run is one job (~1 billed minute on private repos): twice an hour is ~1,440 minutes a month;
+# public repos aren't billed and can also enable the :15/:45 line to retry webhooks every 15 minutes.
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily: all jobs
+    # - cron: '0 * * * *' # cart-expiry + webhook-retry
+    # - cron: '30 * * * *' # reservation-release + webhook-retry
+    # - cron: '15,45 * * * *' # webhook-retry
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Job to run
+        type: choice
+        options: [all, cart-expiry, reservation-release, webhook-retry]
+        default: all
+
+# One run at a time; a run that fires while another is in progress waits for it.
+concurrency:
+  group: crons
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  run:
+    if: vars.CRON_BASE_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pick jobs
+        id: pick
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          INPUT: ${{ inputs.job }}
+        run: |
+          case "$SCHEDULE" in
+            '0 3 * * *')     jobs='cart-expiry reservation-release webhook-retry' ;;
+            '0 * * * *')     jobs='cart-expiry webhook-retry' ;;
+            '30 * * * *')    jobs='reservation-release webhook-retry' ;;
+            '15,45 * * * *') jobs='webhook-retry' ;;
+            '')
+              if [ "$INPUT" = all ]; then jobs='cart-expiry reservation-release webhook-retry'; else jobs="$INPUT"; fi ;;
+            *) echo "::error::No jobs mapped to schedule '$SCHEDULE'"; exit 1 ;;
+          esac
+          echo "jobs=$jobs" >> "$GITHUB_OUTPUT"
+
+      - name: Call cron endpoints
+        env:
+          BASE_URL: ${{ vars.CRON_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          JOBS: ${{ steps.pick.outputs.jobs }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then echo "::error::The CRON_SECRET repository secret isn't set"; exit 1; fi
+          headers=(-H "Authorization: Bearer $CRON_SECRET")
+          if [ -n "$BYPASS" ]; then headers+=(-H "x-vercel-protection-bypass: $BYPASS"); fi
+
+          failed=0
+          for job in $JOBS; do
+            echo "::group::$job"
+            # Retries only transient failures (timeouts, 429, 5xx). Jobs are idempotent, so a repeat is safe.
+            if curl --silent --show-error --fail-with-body --max-time 60 --retry 2 --retry-delay 10 \
+                "${headers[@]}" "${BASE_URL%/}/api/cron/$job"; then
+              echo
+            else
+              echo
+              echo "::error::$job failed"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $failed

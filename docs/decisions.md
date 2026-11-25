@@ -256,9 +256,12 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
   `.internal` hosts. Redirects aren't followed. `NUXT_ALLOW_INSECURE_WEBHOOKS=true` relaxes this for dev
   and tests. (Literal-host checks only; a DNS-rebinding-proof check would need resolved-IP pinning.)
 - **Crons** are `GET /api/cron/*` with `Authorization: Bearer $CRON_SECRET` (constant-time compare), as
-  Vercel Cron sends. Each run is audit-logged (shown on Settings › Workflows). The same jobs are Nitro
-  tasks (`cart:expiry`, `reservation:release`, `webhook:retry`) for `nitro task run` locally. Jobs are
-  idempotent: rows are deleted before stock is released, so overlapping runs can't double-release.
+  Vercel Cron sends. On Hobby, where Vercel Cron is daily-only, `.github/workflows/cron.yml` calls the
+  same endpoints once a day for now, with hourly schedules commented out (opt-in via the
+  `CRON_BASE_URL` repo variable). Each run is audit-logged (shown on Settings › Workflows). The same
+  jobs are Nitro tasks (`cart:expiry`, `reservation:release`, `webhook:retry`) for `nitro task run`
+  locally. Jobs are idempotent: rows are deleted before stock is released, so overlapping runs can't
+  double-release.
 - **CSV is chunked by the browser.** Exports return a page of rows plus `nextOffset`, and the client
   concatenates and downloads. Imports are parsed client-side, grouped by handle and sent 25 products per
   request; each product saves in its own transaction, so one bad row doesn't sink the file. Exports
@@ -293,7 +296,9 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
 - **E2E admin tests share one session.** The global setup signs in once via the API and saves the
   session, because logging in per test trips the login rate limiter. The setup also clears
   `rate_limit`.
-- **Crons are declared twice**: in `vercel.json` (Git deploys) and in `nitro.vercel.config.crons`, so
-  they land in `.vercel/output/config.json` for prebuilt deploys.
+- **Crons are declared once**, in `nitro.vercel.config.crons`, which lands in `.vercel/output/config.json`
+  for Git and prebuilt deploys alike. They used to be in `vercel.json` too, but Vercel merges the two and
+  rejects the duplicates. They're daily so Hobby deploys pass (Hobby rejects anything more frequent);
+  Pro deploys should restore hourly / 15-minute schedules.
 - **CI** runs `check` (typecheck, lint, migrate, seed, unit+API tests, build) and then `e2e`
   (Playwright with bundled Chromium against a freshly seeded Postgres service).
