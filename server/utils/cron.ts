@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
 
-/** Vercel Cron sends `Authorization: Bearer $CRON_SECRET`. Anything else is rejected. */
+/** Vercel Cron (or the GitHub Actions cron workflow) sends `Authorization: Bearer $CRON_SECRET`. Anything else is rejected. */
 export function requireCron(event: H3Event) {
   const secret = useServerConfig().cronSecret
   const header = getHeader(event, 'authorization') ?? ''

@@ -52,7 +52,7 @@ in every status, and the `HARMATTAN10` promotion. `pnpm db:reset` drops everythi
 | `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY` | Paystack card and mobile money checkout. |
 | `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` | Stripe checkout and webhooks. |
 | `RESEND_API_KEY` | Transactional email. Without it, emails are logged to the console. |
-| `CRON_SECRET` | Protects `/api/cron/*` (Vercel Cron sends it as a Bearer token). |
+| `CRON_SECRET` | Protects `/api/cron/*` (Vercel Cron, or the GitHub Actions cron workflow on Hobby, sends it as a Bearer token). |
 | `WEBHOOK_SIGNING_KEY` | Derives outgoing webhook signing secrets (falls back to `CRON_SECRET`). |
 | `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD` | The owner account the seed creates. |
 | `TEST_DATABASE_URL` | Optional separate database for `pnpm test` and `pnpm test:e2e`. |

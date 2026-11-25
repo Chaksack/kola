@@ -16,7 +16,8 @@ a fresh deploy.
 
 - [ ] `NUXT_APP_SECRET`: `openssl rand -base64 32`. Required; production builds don't generate one.
 - [ ] `NUXT_PUBLIC_STORE_URL`: your production URL, e.g. `https://shop.example.com`.
-- [ ] `CRON_SECRET`: `openssl rand -hex 32`. Vercel Cron sends it automatically.
+- [ ] `CRON_SECRET`: `openssl rand -hex 32`. Vercel Cron sends it automatically; on Hobby, also add it as a
+      GitHub Actions secret (step 5).
 - [ ] `WEBHOOK_SIGNING_KEY`: `openssl rand -hex 32`. Don't change it later; it derives every webhook
       endpoint's signing secret.
 - [ ] `ADMIN_SEED_EMAIL` and `ADMIN_SEED_PASSWORD`: only needed when you run the seed.
@@ -49,7 +50,7 @@ DATABASE_URL=… ADMIN_SEED_EMAIL=… ADMIN_SEED_PASSWORD=… pnpm db:seed   # d
 
 ## 5. Crons
 
-`vercel.json` schedules the jobs; they're active once deployed to Production:
+On **Pro**, `vercel.json` schedules the jobs; they're active once deployed to Production:
 
 | Path | Schedule |
 |---|---|
@@ -57,9 +58,36 @@ DATABASE_URL=… ADMIN_SEED_EMAIL=… ADMIN_SEED_PASSWORD=… pnpm db:seed   # d
 | `/api/cron/reservation-release` | hourly at :30 |
 | `/api/cron/webhook-retry` | every 15 minutes |
 
-- [ ] Check that runs appear under Settings › Workflows › Scheduled jobs after the first hour. Vercel's Hobby
-      plan only runs cron jobs once a day, so use Pro for these schedules, or change them to daily (webhook
-      retries then wait up to a day).
+- [ ] Check that runs appear under Settings › Workflows › Scheduled jobs after the first hour.
+
+### Hobby plan: run the crons from GitHub Actions
+
+Vercel's Hobby plan runs cron jobs at most once a day, and a deploy whose `vercel.json` schedules one more
+often fails. `.github/workflows/cron.yml` calls the same endpoints from GitHub Actions instead:
+
+- [ ] Remove the `crons` block from `vercel.json` (or make each schedule daily, e.g. `0 3 * * *`, as a backup).
+- [ ] In GitHub, Settings › Secrets and variables › Actions:
+  - Variable `CRON_BASE_URL`: your production URL, e.g. `https://shop.example.com`. The workflow skips
+    every run until this is set, so Pro deploys can leave it unset.
+  - Secret `CRON_SECRET`: the same value as in Vercel.
+  - Secret `VERCEL_AUTOMATION_BYPASS_SECRET` (optional): only if Deployment Protection covers that URL.
+    Create it in Vercel under Settings › Deployment Protection › Protection Bypass for Automation.
+- [ ] Actions › Crons › Run workflow (job `all`) and check each job returns `{ "job": … }`.
+
+| Schedule (UTC) | Jobs |
+|---|---|
+| :00 every hour | `cart-expiry`, `webhook-retry` |
+| :30 every hour | `reservation-release`, `webhook-retry` |
+
+Things to know:
+
+- Webhook retries run every 30 minutes rather than 15. Each run bills about one Actions minute on private
+  repos (~1,440 a month, inside the 2,000 free); public repos aren't billed and can uncomment the
+  `15,45 * * * *` line in the workflow to match the Pro schedule.
+- GitHub runs schedules only from the default branch, often starts them several minutes late, and
+  disables them in public repos after 60 days with no commits. Re-enable from the Actions tab if that happens.
+- Don't run both Vercel Cron and the workflow at full frequency. Overlap is safe (jobs are idempotent),
+  just wasteful.
 
 ## 6. Smoke test
 
