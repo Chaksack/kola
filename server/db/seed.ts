@@ -5,7 +5,7 @@
 import 'dotenv/config'
 import { randomBytes } from 'node:crypto'
 import { count, eq, sql } from 'drizzle-orm'
-import { closeDb, createDb, type Tx } from './client'
+import { closeDb, withTx, type Tx } from './client'
 import { hashPasswordStandalone } from './password'
 import * as t from './schema'
 import { computeTotals } from '../services/totals'
@@ -806,9 +806,9 @@ async function insertShippingOption(
   return { id: row!.id, name: row!.name, prices: Object.fromEntries(prices) as Partial<Record<Cur, number>> }
 }
 
-const db = createDb(url)
 try {
-  const result = await db.transaction(seed)
+  // withTx: on Neon the HTTP driver has no transactions, so this opens a WebSocket pool instead.
+  const result = await withTx(url, seed)
   console.log('Seeded Kola Market')
   console.log(`  Admin:            ${result.ownerEmail}`)
   console.log(`  Publishable key:  ${result.pkToken}`)
