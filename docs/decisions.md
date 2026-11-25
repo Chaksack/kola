@@ -297,6 +297,7 @@ Choices made where `kola.md` was ambiguous or where a dependency forced a change
   session, because logging in per test trips the login rate limiter. The setup also clears
   `rate_limit`.
 - **Crons are declared twice**: in `vercel.json` (Git deploys) and in `nitro.vercel.config.crons`, so
-  they land in `.vercel/output/config.json` for prebuilt deploys.
+  they land in `.vercel/output/config.json` for prebuilt deploys. Both are daily so Hobby deploys pass
+  (Hobby rejects anything more frequent); Pro deploys should restore hourly / 15-minute schedules.
 - **CI** runs `check` (typecheck, lint, migrate, seed, unit+API tests, build) and then `e2e`
   (Playwright with bundled Chromium against a freshly seeded Postgres service).

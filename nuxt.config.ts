@@ -94,9 +94,10 @@ export default defineNuxtConfig({
     vercel: {
       config: {
         crons: [
-          { path: '/api/cron/cart-expiry', schedule: '0 * * * *' },
-          { path: '/api/cron/reservation-release', schedule: '30 * * * *' },
-          { path: '/api/cron/webhook-retry', schedule: '*/15 * * * *' },
+          // Daily so Hobby deploys pass. On Pro use 0 * * * *, 30 * * * * and */15 * * * * (here and in vercel.json).
+          { path: '/api/cron/cart-expiry', schedule: '0 3 * * *' },
+          { path: '/api/cron/reservation-release', schedule: '30 3 * * *' },
+          { path: '/api/cron/webhook-retry', schedule: '0 4 * * *' },
         ],
       },
     },

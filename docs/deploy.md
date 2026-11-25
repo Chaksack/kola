@@ -50,22 +50,25 @@ DATABASE_URL=… ADMIN_SEED_EMAIL=… ADMIN_SEED_PASSWORD=… pnpm db:seed   # d
 
 ## 5. Crons
 
-On **Pro**, `vercel.json` schedules the jobs; they're active once deployed to Production:
+`vercel.json` schedules the jobs once a day, which works on every plan (Vercel's Hobby plan rejects a
+deploy that schedules a cron more often). They're active once deployed to Production:
 
-| Path | Schedule |
+| Path | Schedule (UTC) |
 |---|---|
-| `/api/cron/cart-expiry` | hourly |
-| `/api/cron/reservation-release` | hourly at :30 |
-| `/api/cron/webhook-retry` | every 15 minutes |
+| `/api/cron/cart-expiry` | daily at 03:00 |
+| `/api/cron/reservation-release` | daily at 03:30 |
+| `/api/cron/webhook-retry` | daily at 04:00 |
 
-- [ ] Check that runs appear under Settings › Workflows › Scheduled jobs after the first hour.
+- [ ] Check that runs appear under Settings › Workflows › Scheduled jobs after the first day. Hobby may
+      start a daily job any time within its hour.
+- [ ] **On Pro**, restore the intended schedules in both `vercel.json` and `nitro.vercel.config.crons` in
+      `nuxt.config.ts`: `cart-expiry` `0 * * * *` (hourly),
+      `reservation-release` `30 * * * *` (hourly at :30), `webhook-retry` `*/15 * * * *` (every 15 minutes).
 
 ### Hobby plan: run the crons from GitHub Actions
 
-Vercel's Hobby plan runs cron jobs at most once a day, and a deploy whose `vercel.json` schedules one more
-often fails. `.github/workflows/cron.yml` calls the same endpoints from GitHub Actions instead:
+On Hobby, `.github/workflows/cron.yml` can call the same endpoints from GitHub Actions instead:
 
-- [ ] Remove the `crons` block from `vercel.json` (or make each schedule daily, e.g. `0 3 * * *`, as a backup).
 - [ ] In GitHub, Settings › Secrets and variables › Actions:
   - Variable `CRON_BASE_URL`: your production URL, e.g. `https://shop.example.com`. The workflow skips
     every run until this is set, so Pro deploys can leave it unset.
@@ -87,7 +90,7 @@ Things to know:
   also uncomment `15,45 * * * *` to match the Pro schedule.
 - GitHub runs schedules only from the default branch, often starts them several minutes late, and
   disables them in public repos after 60 days with no commits. Re-enable from the Actions tab if that happens.
-- Don't run both Vercel Cron and the workflow at full frequency. Overlap is safe (jobs are idempotent),
+- Don't run both Vercel Cron (on Pro) and the workflow at full frequency. Overlap is safe (jobs are idempotent),
   just wasteful.
 
 ## 6. Smoke test
